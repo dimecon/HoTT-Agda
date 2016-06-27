@@ -4,6 +4,7 @@ open import HoTT
 
 open import opetopes.Polynomial
 open import opetopes.CartesianMorphism
+open import opetopes.PolyMisc
 
 module opetopes.PolynomialMonad where
 
@@ -15,14 +16,14 @@ module opetopes.PolynomialMonad where
       η : IdP I ⇝ P
       μ : P ⊚ P ⇝ P
 
-      -- -- Type: P ⇝ IdP I ⊚ P ⇝ P ⊚ P ⇝ P
-      -- η-left-law : ⊚-unit-l P ▶ (η ∥ poly-id P) ▶ μ ≈ poly-id P
+      -- P ⇝ IdP I ⊚ P ⇝ P ⊚ P ⇝ P
+      η-left-law : ⊚-unit-l P ▶ (η ∥ poly-id P) ▶ μ ≈ poly-id P
 
-      -- -- Type: P ⇝ P ⊚ IdP I ⇝ P ⊚ P ⇝ P
-      -- η-right-law : ⊚-unit-r P ▶ (poly-id P ∥ η) ▶ μ ≈ poly-id P
+      -- P ⇝ P ⊚ IdP I ⇝ P ⊚ P ⇝ P
+      η-right-law : ⊚-unit-r P ▶ (poly-id P ∥ η) ▶ μ ≈ poly-id P
 
-      -- -- Type: (P ⊚ P) ⊚ P ⇝ P ⊚ (P ⊚ P) ⇝ P ⊚ P ⇝ P
-      -- μ-assoc-law : ⊚-assoc-r P P P ▶ (poly-id P ∥ μ) ▶ μ ≈ (μ ∥ poly-id P) ▶ μ 
+      -- (P ⊚ P) ⊚ P ⇝ P ⊚ (P ⊚ P) ⇝ P ⊚ P ⇝ P
+      μ-assoc-law : ⊚-assoc-r P P P ▶ (poly-id P ∥ μ) ▶ μ ≈ (μ ∥ poly-id P) ▶ μ 
 
       -- The other associative law (which should be provable ...)
       -- μ-assoc-law' : ⊚-assoc-l P P P ▶ (μ ∥ poly-id P) ▶ μ ≈ (poly-id P ∥ μ) ▶ μ

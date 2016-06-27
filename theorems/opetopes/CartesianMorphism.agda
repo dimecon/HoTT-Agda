@@ -289,22 +289,22 @@ module opetopes.CartesianMorphism where
     ρ-eqv (α ∥ β) {_} {c , φ} = equiv-Σ' ⟪ β ⟫≃ (λ p → ⟦ Q ↓ ⟪ α ∣ β ⟫⇕-coh φ p ⟧≃ ∘e ⟪ α ⟫≃)
     τ-coh (α ∥ β) {_} {c , φ} (p₀ , p₁) = ⟪ α ⟫↓= p₁ ∙ ⟦ Q ↓ ⟪ α ∣ β ⟫⇕-coh φ p₀ ⟧↓= (⟪ α ⟫↓ p₁)
 
-  -- module _ {ℓ} {I J K L : Type ℓ} 
-  --          {f : I → K} {g : J → L} 
-  --          {P : Poly I J} {Q : Poly K L} where
+  module _ {ℓ} {I J K L : Type ℓ} 
+           {f : I → K} {g : J → L} 
+           {P : Poly I J} {Q : Poly K L} where
 
-  --   record LocalEqv (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) {j : J} (c : γ P j) : Type ℓ where
-  --     field
-  --       γ≈ : ⟪ α ⟫ c == ⟪ β ⟫ c
-  --       ρ≈ : (p : ρ P c) → ⟪ α ⟫↓ p == ⟪ β ⟫↓ p [ ρ Q ↓ γ≈ ]
-  --       τ≈ : (p : ρ P c) → ⟪ α ⟫↓= p == ⟪ β ⟫↓= p [ (λ cp → f (τ P p) == τ Q (snd cp)) ↓ pair= γ≈ (ρ≈ p) ] 
+    record LocalEqv (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) {j : J} (c : γ P j) : Type ℓ where
+      field
+        γ≈ : ⟪ α ⟫ c == ⟪ β ⟫ c
+        ρ≈ : (p : ρ P c) → ⟪ α ⟫↓ p == ⟪ β ⟫↓ p [ ρ Q ↓ γ≈ ]
+        τ≈ : (p : ρ P c) → ⟪ α ⟫↓= p == ⟪ β ⟫↓= p [ (λ cp → f (τ P p) == τ Q (snd cp)) ↓ pair= γ≈ (ρ≈ p) ] 
 
-  --   open LocalEqv public
+    open LocalEqv public
 
-  --   _≈_ⓐ_ : (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) {j : J} (c : γ P j) → Type ℓ
-  --   α ≈ β ⓐ c = LocalEqv α β c
+    _≈_ⓐ_ : (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) {j : J} (c : γ P j) → Type ℓ
+    α ≈ β ⓐ c = LocalEqv α β c
 
-  --   _≈_ : (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) → Type ℓ 
-  --   α ≈ β = {j : J} → (c : γ P j) → α ≈ β ⓐ c
+    _≈_ : (α : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) (β : ⟦ f ∣ g ⟧⟦ P ⇒ Q ⟧) → Type ℓ 
+    α ≈ β = {j : J} → (c : γ P j) → α ≈ β ⓐ c
 
   
