@@ -142,12 +142,16 @@ module opetopes.simple.Opetopes where
                             (λ q → consDot M (Ty M q))))
                              
           b : SlOp (Slice M) γ
-          b = box τ φ (λ { (inl unit) → η (Slice (Slice M)) ((i , μ M c δ') , σ) ; 
-                           (inr (p , inl unit)) → η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p)) ; 
-                           (inr (p , inr (_ , ()))) 
-                         })
+          b = box τ φ ψ
   
-                  where φ = (consBox M σ 
-                              (λ p → consBox M (η (Slice M) (Ty M p , ε p)) 
-                              (λ q → consDot M (Ty M q))))
+                  where pr : boxPair (Slice M) τ
+                        pr = pairIntro M σ (η (Slice (Slice M)) ((i , μ M c δ') , σ)) 
+                             (λ p → pairIntro M (η (Slice M) (Ty M p , ε p)) (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p))) 
+                             (λ q → pairNil M (Ty M q)))
 
+                        φ : (p : SlPl M τ) → SlOp M (snd (SlTy M p))
+                        φ = fst pr
+
+                        ψ : (p : SlPl M τ) → SlOp (Slice M) (φ p)
+                        ψ = snd pr
+                        
