@@ -70,7 +70,6 @@ module opetopes.simple.Monads where
     SlTy {w = dot _} ()
     SlTy {w = box c δ ε} (inl _) = (_ , c)
     SlTy {w = box c δ ε} (inr (p , n)) = SlTy n
-
   
     SlGrft : {i : Frm M} → {c : Op M i} → (w : SlOp c) → 
              (δ : (p : Pl M c) → Op M (Ty M p)) → 
@@ -106,10 +105,24 @@ module opetopes.simple.Monads where
   -- Right. Even though it's a bit of a mess, you seem to need the entire eliminator
   -- here, since the fibrations can vary with the place ...
 
-  -- nodeTriv : (M : Monad) → 
-  --            (P : {i : Frm M} → {c : Op M i} → {w : SlOp M (i , c)} → SlPl M w → Type₀) →
-  --            (i : Frm M) → (p : SlPl M (dot i)) → P p
-  -- nodeTriv M P i ()
+  nodeTriv : (M : Monad) → {i : Frm M} → 
+             (P : {c : Op M i} → {w : SlOp M c} → SlPl M w → Type₀) →
+             (p : SlPl M (dot i)) → P p
+  nodeTriv M P ()
+
+  nodeElim : (M : Monad) → {i : Frm M} → 
+             (P : {c : Op M i} → {w : SlOp M c} → SlPl M w → Type₀) →
+             (x : (c : Op M i) → 
+                  (δ : (p : Pl M c) → Op M (Ty M p)) → 
+                  (ε : (p : Pl M c) → SlOp M (δ p)) → P {w = box c δ ε} (inl tt)) → 
+             (φ : (c : Op M i) → 
+                  (δ : (p : Pl M c) → Op M (Ty M p)) → 
+                  (ε : (p : Pl M c) → SlOp M (δ p)) → 
+                  (p : Pl M c) → (q : SlPl M (ε p)) → P {w = box c δ ε} (inr (p , q)))
+             {c : Op M i} → {w : SlOp M c} → (p : SlPl M w) → P p
+  nodeElim M P x φ {w = dot _} ()
+  nodeElim M P x φ {w = box c δ ε} (inl _) = x c δ ε
+  nodeElim M P x φ {w = box c δ ε} (inr (p , q)) = φ c δ ε p q
 
   -- nodeElim : (M : Monad) → 
   --            (P : {i : Frm M} → {c : Op M i} → {w : SlOp M (i , c)} → SlPl M w → Type₀) →
@@ -124,30 +137,30 @@ module opetopes.simple.Monads where
   -- nodeElim M P x φ (this c δ ε) = x _ c δ ε
   -- nodeElim M P x φ (that c δ ε p q) = φ _ c δ ε p q
 
-  -- consDot : (M : Monad) → (i : Frm M) → ⟦ Slice M ⟧⟦ dot i ≺ Op (Slice M) ⟧
-  -- consDot M i ()
+  consDot : (M : Monad) → (i : Frm M) → ⟦ Slice M ⟧⟦ dot i ≺ Op (Slice M) ⟧
+  consDot M i ()
 
-  -- consBox : (M : Monad) → {i : Frm M} → {c : Op M i} →
-  --           {δ : (p : Pl M c) → Op M (Ty M p)} → 
-  --           {ε : (p : Pl M c) → SlOp M (Ty M p , δ p)} → 
-  --           (σ : SlOp M (i , c)) → 
-  --           (φ : (p : Pl M c) → (q : Pl (Slice M) (ε p)) → SlOp M (Ty (Slice M) q)) → 
-  --           (p : Pl (Slice M) (box c δ ε)) → SlOp M (Ty (Slice M) p)
-  -- consBox M σ φ (this c δ ε) = σ
-  -- consBox M σ φ (that c δ ε p q) = φ p q
+  consBox : (M : Monad) → {i : Frm M} → {c : Op M i} →
+            {δ : (p : Pl M c) → Op M (Ty M p)} → 
+            {ε : (p : Pl M c) → SlOp M (δ p)} → 
+            (σ : SlOp M c) → 
+            (φ : (p : Pl M c) → (q : Pl (Slice M) (ε p)) → SlOp M (snd (Ty (Slice M) q))) → 
+            (p : Pl (Slice M) (box c δ ε)) → SlOp M (snd (Ty (Slice M) p))
+  consBox M σ φ (inl _) = σ
+  consBox M σ φ (inr (p , q)) = φ p q
 
-  -- Id : Monad
-  -- Frm Id = ⊤
-  -- Op Id x = ⊤
-  -- Pl Id o = ⊤
-  -- Ty Id p = unit
-  -- η Id i = unit
-  -- μ Id o δ = unit
-  -- ηp Id i = unit
-  -- μp Id o δ p q = unit
-  -- ηp-unique Id i p = idp
-  -- ηp-compat Id i = idp
-  -- μp-compat Id i o δ p q = idp
-  -- unit-l Id i o = idp
-  -- unit-r Id i δ = idp
-  -- assoc Id i o δ δ₁ = idp
+  Id : Monad
+  Frm Id = ⊤
+  Op Id x = ⊤
+  Pl Id o = ⊤
+  Ty Id p = unit
+  η Id i = unit
+  μ Id o δ = unit
+  ηp Id i = unit
+  μp Id o δ p q = unit
+  ηp-unique Id i p = idp
+  ηp-compat Id i = idp
+  μp-compat Id i o δ p q = idp
+  unit-l Id i o = idp
+  unit-r Id i δ = idp
+  assoc Id i o δ δ₁ = idp
