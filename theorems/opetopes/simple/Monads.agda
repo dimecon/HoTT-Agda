@@ -43,6 +43,22 @@ module opetopes.simple.Monads where
   ⟦_⟧ : (M : Monad) → (X : Frm M → Type₀) → Frm M → Type₀
   ⟦ M ⟧ X i = Σ (Op M i) (λ o → ⟦ M ⟧⟦ o ≺ X ⟧)
 
+  Id : Monad
+  Frm Id = ⊤
+  Op Id x = ⊤
+  Pl Id o = ⊤
+  Ty Id p = unit
+  η Id i = unit
+  μ Id o δ = unit
+  ηp Id i = unit
+  μp Id o δ p q = unit
+  ηp-unique Id i p = idp
+  ηp-compat Id i = idp
+  μp-compat Id i o δ p q = idp
+  unit-l Id i o = idp
+  unit-r Id i δ = idp
+  assoc Id i o δ δ₁ = idp
+
   SlFrm : Monad → Type₀
   SlFrm M = Σ (Frm M) (Op M)
 
@@ -70,124 +86,84 @@ module opetopes.simple.Monads where
     SlTy {w = box c ε} (inl _) = (_ , c)
     SlTy {w = box c ε} (inr (p , n)) = SlTy n
   
-  --   SlGrft : {i : Frm M} → {c : Op M i} → (w : SlOp c) → 
-  --            (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  --            (ε : (p : Pl M c) → SlOp (δ p)) → 
-  --            SlOp (μ M c δ)
-  --   SlGrft (dot i) δ ε = transport↓ SlOp (ηp-compat M i) (unit-r M i δ) (ε (ηp M i))
-  --   SlGrft (box c δ ε) δ₁ ε₁ = 
-  --     transport! SlOp (assoc M _ c δ δ₁) (box c _ IH)
+    SlGrft : {i : Frm M} → {c : Op M i} → (w : SlOp c) → 
+             (ε : (p : Pl M c) → Σ (Op M (Ty M p)) SlOp) → 
+             SlOp (μ M c (fst ∘ ε))
+    SlGrft (dot i) ε = transport↓ SlOp (ηp-compat M i) (unit-r M i (fst ∘ ε)) (snd (ε (ηp M i)))
+    SlGrft (box c ε) ε₁ = transport! SlOp (assoc M _ c δ δ₁) (box c IH)
 
-  --     where IH : (p : Pl M c) → SlOp (μ M (δ p) (λ q → transport (Op M) (μp-compat M _ c δ p q) (δ₁ (μp M c δ p q))))
-  --           IH p = SlGrft (ε p) 
-  --                         (λ q → transport (Op M) (μp-compat M _ c δ p q) (δ₁ (μp M c δ p q)))
-  --                         (λ q → transport↓ SlOp (μp-compat M _ c δ p q) (from-transp (Op M) _ idp) (ε₁ (μp M c δ p q)))
-
-  -- {-# TERMINATING #-}
-  -- Slice : Monad → Monad
-  -- Frm (Slice M) = SlFrm M
-  -- Op (Slice M) (i , c) = SlOp M c
-  -- Pl (Slice M) o = SlPl M o
-  -- Ty (Slice M) p = SlTy M p
-  -- η (Slice M) (i , c) = transport (SlOp M) (unit-l M i c) (box c (λ p → η M (Ty M p)) (λ p → dot (Ty M p))) 
-  -- μ (Slice M) (dot i) δ = dot i
-  -- μ (Slice M) (box c δ ε) κ = SlGrft M (κ (inl tt)) δ (λ p → μ (Slice M) (ε p) (λ q → κ (inr (p , q))))
-  -- ηp (Slice M) i = ADMIT
-  -- μp (Slice M) o δ p q = ADMIT
-  -- ηp-unique (Slice M) i p = ADMIT
-  -- ηp-compat (Slice M) i = ADMIT
-  -- μp-compat (Slice M) i o δ p q = ADMIT
-  -- unit-l (Slice M) i o = ADMIT
-  -- unit-r (Slice M) i δ = ADMIT
-  -- assoc (Slice M) i o δ δ₁ = ADMIT
-
-  -- -- Right. Even though it's a bit of a mess, you seem to need the entire eliminator
-  -- -- here, since the fibrations can vary with the place ...
-
-  -- nodeTriv : (M : Monad) → {i : Frm M} → 
-  --            (P : {c : Op M i} → {w : SlOp M c} → SlPl M w → Type₀) →
-  --            (p : SlPl M (dot i)) → P p
-  -- nodeTriv M P ()
-
-  -- nodeElim : (M : Monad) → {i : Frm M} → 
-  --            (P : {c : Op M i} → {w : SlOp M c} → SlPl M w → Type₀) →
-  --            (x : (c : Op M i) → 
-  --                 (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  --                 (ε : (p : Pl M c) → SlOp M (δ p)) → P {w = box c δ ε} (inl tt)) → 
-  --            (φ : (c : Op M i) → 
-  --                 (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  --                 (ε : (p : Pl M c) → SlOp M (δ p)) → 
-  --                 (p : Pl M c) → (q : SlPl M (ε p)) → P {w = box c δ ε} (inr (p , q)))
-  --            {c : Op M i} → {w : SlOp M c} → (p : SlPl M w) → P p
-  -- nodeElim M P x φ {w = dot _} ()
-  -- nodeElim M P x φ {w = box c δ ε} (inl _) = x c δ ε
-  -- nodeElim M P x φ {w = box c δ ε} (inr (p , q)) = φ c δ ε p q
-
-  -- -- nodeElim : (M : Monad) → 
-  -- --            (P : {i : Frm M} → {c : Op M i} → {w : SlOp M (i , c)} → SlPl M w → Type₀) →
-  -- --            (x : (i : Frm M) → (c : Op M i) → 
-  -- --                 (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  -- --                 (ε : (p : Pl M c) → SlOp M (Ty M p , δ p)) → P (this c δ ε)) → 
-  -- --            (φ : (i : Frm M) → (c : Op M i) → 
-  -- --                 (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  -- --                 (ε : (p : Pl M c) → SlOp M (Ty M p , δ p)) → 
-  -- --                 (p : Pl M c) → (q : SlPl M (ε p)) → P (that c δ ε p q)) → 
-  -- --            {i : Frm M} → {c : Op M i} → {w : SlOp M (i , c)} → (p : SlPl M w) → P p
-  -- -- nodeElim M P x φ (this c δ ε) = x _ c δ ε
-  -- -- nodeElim M P x φ (that c δ ε p q) = φ _ c δ ε p q
-
-  --     -- box : {i : Frm M} → (c : Op M i) → 
-  --     --       (δ : (p : Pl M c) → Op M (Ty M p)) → 
-  --     --       (ε : (p : Pl M c) → SlOp (δ p)) → 
-  --     --       SlOp (μ M c δ)
+      where δ : (p : Pl M c) → Op M (Ty M p)
+            δ = fst ∘ ε
   
-  -- boxPair : (M : Monad) → {i : Frm M} → (c : Op M i) → Type₀
-  -- boxPair M c = Σ ((p : Pl M c) → Op M (Ty M p)) (λ δ → (p : Pl M c) → SlOp M (δ p))
+            δ₁ : (p : Pl M (μ M c δ)) → Op M (Ty M p)
+            δ₁ = fst ∘ ε₁
 
-  -- pairNil : (M : Monad) → (i : Frm M) → boxPair (Slice M) (dot i)
-  -- pairNil M i = (λ { () }) , (λ { () })
+            α : (p : Pl M c) → (q : Pl M (δ p)) → Op M (Ty M q)
+            α p q = transport (Op M) (μp-compat M _ c δ p q) (δ₁ (μp M c δ p q))
 
-  -- pairIntro : (M : Monad) → {i : Frm M} → {c : Op M i} →
-  --             {δ : (p : Pl M c) → Op M (Ty M p)} → 
-  --             {ε : (p : Pl M c) → SlOp M (δ p)} → 
-  --             (σ : SlOp M c) → (τ : SlOp (Slice M) σ) → 
-  --             (pr : (p : Pl M c) → boxPair (Slice M) (ε p)) → 
-  --             boxPair (Slice M) (box c δ ε)
-  -- pairIntro M {c = c} {ε = ε} σ τ pr = (λ { (inl _) → σ ; 
-  --                                           (inr (p , q)) → φ p q }) , 
-  --                                      (λ { (inl _) → τ ; 
-  --                                           (inr (p , q)) → ψ p q })
+            β : (p : Pl M c) → (q : Pl M (δ p)) → SlOp (α p q)
+            β p q = transport↓ SlOp (μp-compat M _ c δ p q) (from-transp (Op M) _ idp) (snd (ε₁ (μp M c δ p q)))
 
-  --           where φ : (p : Pl M c) → (q : Pl (Slice M) (ε p)) → SlOp M (snd (Ty (Slice M) q))
-  --                 φ p q = fst (pr p) q
+            IH : (p : Pl M c) → Σ (Op M (Ty M p)) SlOp
+            IH p = μ M (δ p) (α p) , SlGrft (snd (ε p)) (λ q → α p q , β p q)
 
-  --                 ψ : (p : Pl M c) → (q : Pl (Slice M) (ε p)) → SlOp (Slice M) (φ p q)
-  --                 ψ p q = snd (pr p) q
+  {-# TERMINATING #-}
+  Slice : Monad → Monad
+  Frm (Slice M) = SlFrm M
+  Op (Slice M) (i , c) = SlOp M c
+  Pl (Slice M) o = SlPl M o
+  Ty (Slice M) p = SlTy M p
+  η (Slice M) (i , c) = transport (SlOp M) (unit-l M i c) (box c (λ p → η M (Ty M p) , dot (Ty M p)))
+  μ (Slice M) (dot i) δ = dot i
+  μ (Slice M) (box c ε) κ = SlGrft M (κ (inl tt)) (λ p → fst (ε p) , μ (Slice M) (snd (ε p)) (λ q → κ (inr (p , q))))
+  ηp (Slice M) i = ADMIT
+  μp (Slice M) o δ p q = ADMIT
+  ηp-unique (Slice M) i p = ADMIT
+  ηp-compat (Slice M) i = ADMIT
+  μp-compat (Slice M) i o δ p q = ADMIT
+  unit-l (Slice M) i o = ADMIT
+  unit-r (Slice M) i δ = ADMIT
+  assoc (Slice M) i o δ δ₁ = ADMIT
 
-  -- consDot : (M : Monad) → (i : Frm M) → ⟦ Slice M ⟧⟦ dot i ≺ Op (Slice M) ⟧
-  -- consDot M i ()
+  nodeIn : (M : Monad) → 
+           (P : {i : Frm M} → {c : Op M i} → (w : SlOp M c) → (p : SlPl M w) → Type₀) → 
+           (φ : {i : Frm M} → (c : Op M i) → 
+                (ε : (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)) → 
+                P (box c ε) (inl tt)) → 
+           (ψ : {i : Frm M} → (c : Op M i) → 
+                (ε : (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)) → 
+                (p : Pl M c) → (q : SlPl M (snd (ε p))) → P (box c ε) (inr (p , q))) → 
+           {i : Frm M} → {c : Op M i} → {w : SlOp M c} → (p : SlPl M w) → P w p
+  nodeIn M P φ ψ {w = dot _} ()
+  nodeIn M P φ ψ {w = box c ε} (inl _) = φ c ε
+  nodeIn M P φ ψ {w = box c ε} (inr (p , q)) = ψ c ε p q
 
-  -- consBox : (M : Monad) → {i : Frm M} → {c : Op M i} →
-  --           {δ : (p : Pl M c) → Op M (Ty M p)} → 
-  --           {ε : (p : Pl M c) → SlOp M (δ p)} → 
-  --           (σ : SlOp M c) → 
-  --           (φ : (p : Pl M c) → (q : Pl (Slice M) (ε p)) → SlOp M (snd (Ty (Slice M) q))) → 
-  --           (p : Pl (Slice M) (box c δ ε)) → SlOp M (snd (Ty (Slice M) p))
-  -- consBox M σ φ (inl _) = σ
-  -- consBox M σ φ (inr (p , q)) = φ p q
+  boxPair : (M : Monad) → {i : Frm M} → (c : Op M i) → Type₀
+  boxPair M c = (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)
 
-  -- Id : Monad
-  -- Frm Id = ⊤
-  -- Op Id x = ⊤
-  -- Pl Id o = ⊤
-  -- Ty Id p = unit
-  -- η Id i = unit
-  -- μ Id o δ = unit
-  -- ηp Id i = unit
-  -- μp Id o δ p q = unit
-  -- ηp-unique Id i p = idp
-  -- ηp-compat Id i = idp
-  -- μp-compat Id i o δ p q = idp
-  -- unit-l Id i o = idp
-  -- unit-r Id i δ = idp
-  -- assoc Id i o δ δ₁ = idp
+  pairNil : (M : Monad) → (i : Frm M) → boxPair (Slice M) (dot i)
+  pairNil M i ()
+
+  nodeRec : (M : Monad) → {i : Frm M} → {c : Op M i} →
+            (P : Frm (Slice M) → Type₀) → 
+            {ε : (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)} → 
+            (x : P (i , c)) → 
+            (φ : (p : Pl M c) → (q : SlPl M (snd (ε p))) → P (SlTy M q)) → 
+            (p : SlPl M (box c ε)) → P (Ty (Slice M) p)
+  nodeRec M P x φ (inl _) = x
+  nodeRec M P x φ (inr (p , q)) = φ p q
+
+  pairIntre : (M : Monad) → {i : Frm M} → {c : Op M i} →
+              {ε : (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)} → 
+              (στ : Σ (SlOp M c) (SlOp (Slice M))) → 
+              (κ : (p : Pl M c) → boxPair (Slice M) (snd (ε p))) → 
+              boxPair (Slice M) (box c ε)
+  pairIntre M {i} {c} στ κ p = nodeRec M (λ { (_ , d) → Σ (SlOp M d) (SlOp (Slice M)) }) στ κ p
+
+  pairIntro : (M : Monad) → {i : Frm M} → {c : Op M i} →
+              {ε : (p : Pl M c) → Σ (Op M (Ty M p)) (SlOp M)} → 
+              (στ : Σ (SlOp M c) (SlOp (Slice M))) → 
+              (κ : (p : Pl M c) → boxPair (Slice M) (snd (ε p))) → 
+              boxPair (Slice M) (box c ε)
+  pairIntro M στ κ (inl _) = στ
+  pairIntro M στ κ (inr (p , q)) = κ p q
