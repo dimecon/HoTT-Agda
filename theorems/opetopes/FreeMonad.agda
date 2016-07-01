@@ -66,8 +66,27 @@ module opetopes.FreeMonad where
 
     open ADMIT
 
-    -- fr-η-left-law : ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ≈ poly-id FrP
-    -- fr-η-left-law = ADMIT
+    fr-η-left-law : ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ≈ poly-id FrP
+    γ≈ (fr-η-left-law (leaf i)) = idp 
+    γ≈ (fr-η-left-law (node (c , δ))) = 
+      ⟪ ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (node (c , δ))               =⟨ idp ⟩ 
+      ⟪ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (⟪ ⊚-unit-l FrP ⟫ (node (c , δ)))           =⟨ idp ⟩ 
+      ⟪ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (node (c , δ) , (λ x → lift unit))         =⟨ idp ⟩            
+      ⟪ fr-μ ⟫ (⟪ fr-η ∥ poly-id FrP ⟫ (node (c , δ) , (λ x → lift unit)))        =⟨ idp ⟩ 
+      ⟪ fr-μ ⟫ (node (c , δ) , (λ q → leaf (leafType (snd q))))                          =⟨ idp ⟩ 
+      node (c , (λ p₀ → γ-map (fr-fix fr-P) (δ p₀ , (λ p₁ → leaf (leafType p₁)))))      =⟨ idp ⟩ 
+      node (c , (λ p₀ → ⟪ ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (δ p₀)))          =⟨ f-lemma |in-ctx (λ x → node (c , x)) ⟩ 
+      node (c , δ)                                                                        =⟨ idp ⟩ 
+      ⟪ poly-id FrP ⟫ (node (c , δ)) ∎
+
+        where IH : (p : ρ P c) → ⟪ ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (δ p) == ⟪ poly-id FrP ⟫ (δ p)
+              IH p = γ≈ (fr-η-left-law (δ p))
+
+              f-lemma : (λ p₀ → ⟪ ⊚-unit-l FrP ▶ (fr-η ∥ poly-id FrP) ▶ fr-μ ⟫ (δ p₀)) == δ
+              f-lemma = λ= (λ p → IH p)
+
+    ρ≈ (fr-η-left-law c) p = {!!}
+    τ≈ (fr-η-left-law c) p = {!!}
 
     -- -- The right law is definitional 
     -- fr-η-right-law : ⊚-unit-r FrP ▶ (poly-id FrP ∥ fr-η) ▶ fr-μ ≈ poly-id FrP

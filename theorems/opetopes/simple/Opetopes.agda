@@ -118,10 +118,54 @@ module opetopes.simple.Opetopes where
   -- -- -- we can put an arbitrary multiplication in the top dimension, this seems more
   -- -- -- appropriate than simply adding a top dimensional η to give the cell .. hmm...
 
-  eric : (M : Monad) → (i : Frm M) → (c : Op M i) → 
-         (δ : (p : Pl M c) → Op M (Ty M p)) → 
-         (ε : (p : Pl M (μ M c (λ p → η↑ M (δ p)))) → Op M (Ty M p)) → MOp 3 M
-  eric M i c δ ε = ((i , μ M (μ M c δ') ε') , γ) , b
+  -- eric : (M : Monad) → (i : Frm M) → (c : Op M i) → 
+  --        (δ : (p : Pl M c) → Op M (Ty M p)) → 
+  --        (ε : (p : Pl M (μ M c (λ p → η↑ M (δ p)))) → Op M (Ty M p)) → MOp 3 M
+  -- eric M i c δ ε = ((i , μ M (μ M c δ') ε') , γ) , b
+
+  --   where δ' : (p : Pl M c) → Op M (Ty M p)
+  --         δ' p = η↑ M (δ p)
+
+  --         ε' : (p : Pl M (μ M c δ')) → Op M (Ty M p)
+  --         ε' p = η↑ M (ε p)
+
+  --         σ : SlOp M (μ M c δ')
+  --         σ = box c (λ p → δ' p , box (δ p) (λ q → η M (Ty M q) , dot (Ty M q)))
+
+  --         τ : SlOp M (μ M (μ M c δ') ε')
+  --         τ = box (μ M c δ') (λ p → ε' p , box (ε p) (λ q → η M (Ty M q) , dot (Ty M q)))
+
+  --         γ : SlOp M (μ M (μ M c δ') ε')
+  --         γ = μ (Slice M) τ (λ { (inl _) → σ ; 
+  --                                (inr (p , inl _)) → η (Slice M) (Ty M p , ε p) ; 
+  --                                (inr (_ , inr (_ , ()))) })
+
+  --         -- γ : SlOp M (μ M (μ M c δ') ε')
+  --         -- γ = μ (Slice M) τ (nodeRec M P σ 
+  --         --                     (λ p → nodeRec M P (η (Slice M) (Ty M p , ε p)) 
+  --         --                     (λ {q → λ { () }})))
+
+  --         --       where P : Frm (Slice M) → Type₀
+  --         --             P (i , c) = SlOp M c
+           
+  --         b : SlOp (Slice M) γ
+  --         b = box τ (λ { (inl _) → σ , η (Slice (Slice M)) ((i , μ M c δ') , σ) ; 
+  --                        (inr (p , inl _)) → (η (Slice M) (Ty M p , ε p)) , (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p))) ; 
+  --                        (inr (_ , inr (_ , ()))) })
+
+  --         -- b : SlOp (Slice M) γ
+  --         -- b = box τ (nodeRec M P (σ , η (Slice (Slice M)) ((i , μ M c δ') , σ)) 
+  --         --             (λ p → nodeRec M P ((η (Slice M) (Ty M p , ε p)) , (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p)))) 
+  --         --             (λ { p₁ () })))
+
+  --         --       where P : Frm (Slice M) → Type₀
+  --         --             P (i , c) = Σ (SlOp M c) (SlOp (Slice M))
+
+
+  emilie : (M : Monad) → (i : Frm M) → (c : Op M i) → 
+           (δ : (p : Pl M c) → Op M (Ty M p)) → 
+           (ε : (p : Pl M (μ M c (λ p → η↑ M (δ p)))) → Op M (Ty M p)) → MOp 4 M
+  emilie M i c δ ε = (((i , μ M (μ M c δ') ε') , γ) , {!!}) , d
 
     where δ' : (p : Pl M c) → Op M (Ty M p)
           δ' p = η↑ M (δ p)
@@ -135,19 +179,29 @@ module opetopes.simple.Opetopes where
           τ : SlOp M (μ M (μ M c δ') ε')
           τ = box (μ M c δ') (λ p → ε' p , box (ε p) (λ q → η M (Ty M q) , dot (Ty M q)))
 
+          ζ : SlOp M (μ M (μ M c δ') ε')
+          ζ = box (μ M c δ') (λ p → ε' p , box (ε p) (λ q → η M (Ty M q) , dot (Ty M q)))
+
           γ : SlOp M (μ M (μ M c δ') ε')
-          γ = μ (Slice M) τ (nodeRec M P σ 
-                              (λ p → nodeRec M P (η (Slice M) (Ty M p , ε p)) 
-                              (λ {q → λ { () }})))
-
-                where P : Frm (Slice M) → Type₀
-                      P (i , c) = SlOp M c
+          γ = μ (Slice M) τ (λ { (inl _) → σ ; 
+                                 (inr (p , inl _)) → η (Slice M) (Ty M p , ε p) ; 
+                                 (inr (_ , inr (_ , ()))) })
            
-          b : SlOp (Slice M) γ
-          b = box τ (nodeRec M P (σ , η (Slice (Slice M)) ((i , μ M c δ') , σ)) 
-                      (λ p → nodeRec M P ((η (Slice M) (Ty M p , ε p)) , (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p)))) 
-                      (λ { p₁ () })))
+          -- b : SlOp (Slice M) γ
+          -- b = box ζ (λ { (inl _) → σ , {!!} ;
+          --                (inr (p , inl _)) → (η (Slice M) (Ty M p , ε p)) , (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p))) ; 
+          --                (inr (_ , inr (_ , ()))) })
 
-                where P : Frm (Slice M) → Type₀
-                      P (i , c) = Σ (SlOp M c) (SlOp (Slice M))
+          -- And so on.  Okay, this is getting painful with  the typechecking time.
+          -- But at least the structure looks pretty clear.
+          d : SlOp (Slice (Slice M)) _
+          d = box pd (λ { (inl _) → (η (Slice (Slice M)) ((_ , _) , ζ)) , {!!} ;   -- Aha!  This is the place living over ζ
+                          (inr (inl _ , q)) → {!!} ; 
+                          (inr (inr (p , inl _) , q)) → {!!} ; 
+                          (inr (inr (_ , inr (_ , ())) , _)) })
 
+                  where pd : SlOp (Slice M) γ
+                        pd = box ζ (λ { (inl _) → σ , η (Slice (Slice M)) ((i , μ M c δ') , σ) ; 
+                                        (inr (p , inl _)) → (η (Slice M) (Ty M p , ε p)) , 
+                                                             (η (Slice (Slice M)) ((Ty M p , ε p) , η (Slice M) (Ty M p , ε p))) ; 
+                                        (inr (_ , inr (_ , ()))) })
